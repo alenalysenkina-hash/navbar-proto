@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lottie Navbar Prototype</title>
+
+  <script src="https://unpkg.com/lottie-web/build/player/lottie.min.js"></script>
+
+  <style>
+    :root{
+      --nav-h: 88px;
+      --icon: 26px;
+
+      --activeColor: #2F7BFF;
+      --inactiveColor: rgba(255,255,255,.55);
+
+      --bg: #0b0b0c;
+      --glassTop: rgba(24,24,27,.50);
+      --glassBottom: rgba(16,16,18,.78);
+      --stroke: rgba(255,255,255,.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body{
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+    }
+
+    /* NAVBAR */
+    .nav{
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: var(--nav-h);
+      padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+      background: linear-gradient(to bottom, var(--glassTop), var(--glassBottom));
+      border-top: 1px solid var(--stroke);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .nav__row{
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+    }
+
+    .tab{
+      height: 100%;
+      border-radius: 14px;
+      display: grid;
+      grid-template-rows: 40px 18px;
+      align-content: center;
+      justify-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .icon{
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      transform: translateZ(0);
+    }
+
+    .icon svg{
+      width: var(--icon);
+      height: var(--icon);
+    }
+
+    .label{
+      font-size: 12px;
+      line-height: 1;
+      letter-spacing: .2px;
+      margin-top: 2px;
+      color: var(--inactiveColor);
+      white-space: nowrap;
+    }
+
+    .tab[data-active="true"] .label{
+      color: var(--activeColor);
+      font-weight: 600;
+    }
+
+    /* your Lotties are blue: "inactive" = dimmed */
+    .tab[data-active="false"] .icon { opacity: .50; }
+    .tab[data-active="true"]  .icon { opacity: 1; }
+
+    .tab:hover{ background: rgba(255,255,255,.04); }
+    .tab:active{ background: rgba(255,255,255,.06); }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="nav__row">
+      <div class="tab" data-key="flights" data-active="true">
+        <div class="icon" id="icon-flights" aria-label="Авиабилеты"></div>
+        <div class="label">Авиабилеты</div>
+      </div>
+
+      <div class="tab" data-key="hotels" data-active="false">
+        <div class="icon" id="icon-hotels" aria-label="Отели"></div>
+        <div class="label">Отели</div>
+      </div>
+
+      <div class="tab" data-key="experiences" data-active="false">
+        <div class="icon" id="icon-experiences" aria-label="Впечатления"></div>
+        <div class="label">Впечатления</div>
+      </div>
+
+      <div class="tab" data-key="favorites" data-active="false">
+        <div class="icon" id="icon-favorites" aria-label="Избранное"></div>
+        <div class="label">Избранное</div>
+      </div>
+
+      <div class="tab" data-key="profile" data-active="false">
+        <div class="icon" id="icon-profile" aria-label="Профиль"></div>
+        <div class="label">Профиль</div>
+      </div>
+    </div>
+  </nav>
+
+  <script>
+    // Put these files in: navbar-proto/lottie/
+    // Plane.json, Hotel.json, Nutshell.json, Heart.json, Person.json
+    const ICONS = {
+      flights:     { el: "icon-flights",     path: "lottie/Plane.json" },
+      hotels:      { el: "icon-hotels",      path: "lottie/Hotel.json" },
+      experiences: { el: "icon-experiences", path: "lottie/Nutshell.json" },
+      favorites:   { el: "icon-favorites",   path: "lottie/Heart.json" },
+      profile:     { el: "icon-profile",     path: "lottie/Person.json" }
+    };
+
+    const animations = {};
+    for (const [key, cfg] of Object.entries(ICONS)) {
+      animations[key] = lottie.loadAnimation({
+        container: document.getElementById(cfg.el),
+        renderer: "svg",
+        loop: false,
+        autoplay: false,
+        path: cfg.path,
+        rendererSettings: { progressiveLoad: true }
+      });
+    }
+
+    function resetToStart(key){
+      const a = animations[key];
+      if (!a) return;
+      a.stop();
+      a.goToAndStop(0, true);
+    }
+
+    function playActivate(key){
+      const a = animations[key];
+      if (!a) return;
+      a.stop();
+      a.goToAndStop(0, true);
+      a.play();
+    }
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        const key = tab.dataset.key;
+
+        // deactivate all tabs
+        document.querySelectorAll(".tab").forEach(t => t.dataset.active = "false");
+
+        // reset other animations
+        for (const k of Object.keys(animations)) {
+          if (k !== key) resetToStart(k);
+        }
+
+        // activate current tab + play
+        tab.dataset.active = "true";
+        playActivate(key);
+      });
+    });
+  </script>
+</body>
+</html>
