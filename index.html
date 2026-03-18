@@ -30,6 +30,23 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
     }
 
+    /* VARIANT LABEL */
+    .variant-label{
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: white;
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.12);
+      z-index: 1000;
+      pointer-events: none;
+    }
+
     /* NAVBAR */
     .nav{
       position: fixed;
@@ -87,7 +104,6 @@
       font-weight: 600;
     }
 
-    /* your Lotties are blue: "inactive" = dimmed */
     .tab[data-active="false"] .icon { opacity: .50; }
     .tab[data-active="true"]  .icon { opacity: 1; }
 
@@ -97,40 +113,57 @@
 </head>
 
 <body>
+
+  <div class="variant-label" id="variant-label"></div>
+
   <nav class="nav">
     <div class="nav__row">
       <div class="tab" data-key="flights" data-active="true">
-        <div class="icon" id="icon-flights" aria-label="Авиабилеты"></div>
+        <div class="icon" id="icon-flights"></div>
         <div class="label">Авиабилеты</div>
       </div>
 
       <div class="tab" data-key="hotels" data-active="false">
-        <div class="icon" id="icon-hotels" aria-label="Отели"></div>
+        <div class="icon" id="icon-hotels"></div>
         <div class="label">Отели</div>
       </div>
 
       <div class="tab" data-key="experiences" data-active="false">
-        <div class="icon" id="icon-experiences" aria-label="Впечатления"></div>
+        <div class="icon" id="icon-experiences"></div>
         <div class="label">Впечатления</div>
       </div>
 
       <div class="tab" data-key="favorites" data-active="false">
-        <div class="icon" id="icon-favorites" aria-label="Избранное"></div>
+        <div class="icon" id="icon-favorites"></div>
         <div class="label">Избранное</div>
       </div>
 
       <div class="tab" data-key="profile" data-active="false">
-        <div class="icon" id="icon-profile" aria-label="Профиль"></div>
+        <div class="icon" id="icon-profile"></div>
         <div class="label">Профиль</div>
       </div>
     </div>
   </nav>
 
   <script>
-    // Put these files in: navbar-proto/lottie/
-    // Plane.json, Hotel.json, Nutshell.json, Heart.json, Person.json
+    const params = new URLSearchParams(window.location.search);
+    const variant = params.get("variant") || "default";
+
+    // 🔹 подпись сверху
+    const label = document.getElementById("variant-label");
+    label.textContent = "Variant: " + variant.toUpperCase();
+
+    // 🔹 выбор анимации
+    const flightAnimationMap = {
+      default: "lottie/Plane.json",
+      a: "lottie/Plane-2.json",
+      b: "lottie/Plane-3.json"
+    };
+
+    const flightPath = flightAnimationMap[variant] || flightAnimationMap.default;
+
     const ICONS = {
-      flights:     { el: "icon-flights",     path: "lottie/Plane.json" },
+      flights:     { el: "icon-flights",     path: flightPath },
       hotels:      { el: "icon-hotels",      path: "lottie/Hotel.json" },
       experiences: { el: "icon-experiences", path: "lottie/Nutshell.json" },
       favorites:   { el: "icon-favorites",   path: "lottie/Heart.json" },
@@ -144,8 +177,7 @@
         renderer: "svg",
         loop: false,
         autoplay: false,
-        path: cfg.path,
-        rendererSettings: { progressiveLoad: true }
+        path: cfg.path
       });
     }
 
@@ -168,15 +200,12 @@
       tab.addEventListener("click", () => {
         const key = tab.dataset.key;
 
-        // deactivate all tabs
         document.querySelectorAll(".tab").forEach(t => t.dataset.active = "false");
 
-        // reset other animations
         for (const k of Object.keys(animations)) {
           if (k !== key) resetToStart(k);
         }
 
-        // activate current tab + play
         tab.dataset.active = "true";
         playActivate(key);
       });
